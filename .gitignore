@@ -1,0 +1,59 @@
+# ======================
+# 🔥 GENERAL
+# ======================
+node_modules/
+vendor/
+.env
+.env.*
+*.log
+*.zip
+
+# ======================
+# 🐍 PYTHON (FastAPI)
+# ======================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+
+venv/
+.env/
+.envrc
+
+# ======================
+# 🐘 LARAVEL (PHP)
+# ======================
+/backend/api/vendor/
+/backend/api/node_modules/
+/backend/api/.env
+/backend/api/storage/*.key
+/backend/api/storage/logs/*
+/backend/api/storage/framework/cache/*
+/backend/api/storage/framework/sessions/*
+/backend/api/storage/framework/views/*
+/backend/api/bootstrap/cache/*.php
+
+# ======================
+# 🧠 AI SERVICE
+# ======================
+ai_service/venv/
+ai_service/__pycache__/
+
+# ======================
+# 💻 OS FILES
+# ======================
+.DS_Store
+Thumbs.db
+
+# ======================
+# 🧪 IDE FILES
+# ======================
+.vscode/
+.idea/
+
+# ======================
+# 📦 DATABASE
+# ======================
+*.sqlite
+*.db
