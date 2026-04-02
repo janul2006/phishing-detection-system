@@ -1,21 +1,31 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
+import joblib
+import pandas as pd
 
 app = FastAPI()
 
+# Load model + features
+model = joblib.load("models/train2/final_model.pkl")
+features = joblib.load("models/train2/features.pkl")
+
 @app.get("/")
 def home():
-    return {"message": "ML Service Running"}
-
-
-class URLRequest(BaseModel):
-    url: str
+    return {"message": "Phishing Detection API Running 🚀"}
 
 @app.post("/predict")
-def predict(data: URLRequest):
-    url = data.url
+def predict(data: dict):
+    try:
+        input_data = pd.DataFrame([data])
 
-    return {
-        "result": "safe",
-        "confidence": 90
-    }
+        # Ensure correct feature order
+        input_data = input_data[features]
+
+        prediction = model.predict(input_data)[0]
+
+        return {
+            "prediction": int(prediction),
+            "result": "phishing" if prediction == 1 else "legitimate"
+        }
+
+    except Exception as e:
+        return {"error": str(e)}
