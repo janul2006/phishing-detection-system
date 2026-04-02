@@ -11,6 +11,8 @@ class ScanController extends Controller
 {
     public function scan(Request $request)
     {
+        $startedAt = microtime(true);
+
         $request->validate([
             'url' => 'required|url'
         ]);
@@ -18,11 +20,10 @@ class ScanController extends Controller
         $url = $request->input('url');
 
         try {
-
             // ⚡ Cache result (optional but powerful)
             $data = Cache::remember($url, 60, function () use ($url) {
-
-                $response = Http::timeout(5)->post('http://127.0.0.1:8000/predict', [
+                $aiServiceUrl = rtrim(config('services.ai.url'), '/');
+                $response = Http::timeout(5)->post("{$aiServiceUrl}/predict", [
                     'url' => $url
                 ]);
 
@@ -34,14 +35,24 @@ class ScanController extends Controller
             });
 
             // 💾 Save to DB
-            Scan::create([
+            $scan = Scan::create([
                 'url' => $url,
-                'result' => $data['result']
+                'result' => $data['result'] ?? 'unknown',
+                'confidence' => $data['confidence'] ?? null,
             ]);
+
+            $elapsedMs = (int) round((microtime(true) - $startedAt) * 1000);
+            $payload = [
+                'url' => $url,
+                'result' => $data['result'] ?? 'unknown',
+                'confidence' => $data['confidence'] ?? null,
+                'scanned_at' => $scan->created_at?->toISOString(),
+                'scan_time_ms' => $elapsedMs,
+            ];
 
             return response()->json([
                 'success' => true,
-                'data' => $data
+                'data' => $payload
             ]);
 
         } catch (\Exception $e) {
