@@ -56,4 +56,13 @@ Thumbs.db
 # 📦 DATABASE
 # ======================
 *.sqlite
+
 *.db
+
+# ======================
+# 📁 DATA
+# ======================
+ai_service/data/*.csv
+/data/*.xlsx
+/Dataset
+
