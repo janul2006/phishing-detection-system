@@ -2,27 +2,37 @@ from fastapi import FastAPI
 import joblib
 import pandas as pd
 
+from scripts.feature_extractor import extract_features
+
 app = FastAPI()
 
-# Load model + features
 model = joblib.load("models/train2/final_model.pkl")
 features = joblib.load("models/train2/features.pkl")
-
-@app.get("/")
-def home():
-    return {"message": "Phishing Detection API Running 🚀"}
 
 @app.post("/predict")
 def predict(data: dict):
     try:
-        input_data = pd.DataFrame([data])
+        url = data.get("url")
 
-        # Ensure correct feature order
+        if not url:
+            return {"error": "URL is required"}
+
+        # 🔥 Extract features
+        extracted = extract_features(url)
+
+        input_data = pd.DataFrame([extracted])
+
+        # Fill missing features
+        for col in features:
+            if col not in input_data:
+                input_data[col] = 0
+
         input_data = input_data[features]
 
         prediction = model.predict(input_data)[0]
 
         return {
+            "url": url,
             "prediction": int(prediction),
             "result": "phishing" if prediction == 1 else "legitimate"
         }
