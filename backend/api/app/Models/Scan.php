@@ -11,6 +11,4 @@ class Scan extends Model
         'result',
         'confidence',
     ];
-
-    public $timestamps = false;
 }

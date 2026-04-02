@@ -12,8 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('scans', function (Blueprint $table) {
-           $table->string('url');
+           $table->id();
+            $table->string('url');
             $table->string('result');
+            $table->timestamps();
         });
     }
 
