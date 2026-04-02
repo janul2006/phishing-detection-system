@@ -6,6 +6,4 @@ use App\Http\Controllers\ScanController;
 
 Route::post('/scan-url', [ScanController::class, 'scan']);
 
-Route::get('/test', function () {
-    return "API WORKING";
-});
+Route::get('/history', [ScanController::class, 'history']);
