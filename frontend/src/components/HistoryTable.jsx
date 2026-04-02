@@ -14,7 +14,14 @@ function HistoryTable({ refreshKey = 0 }) {
       setError("");
 
       try {
-        const res = await API.get("/history");
+        const res = await API.get("/history", {
+          params: { _t: Date.now() },
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
+          },
+        });
         const items = res?.data?.data?.data || [];
 
         if (!ignore) {
@@ -58,26 +65,15 @@ function HistoryTable({ refreshKey = 0 }) {
             <tr>
               <th style={{ border: "1px solid #555", padding: "8px" }}>URL</th>
               <th style={{ border: "1px solid #555", padding: "8px" }}>Result</th>
-              <th style={{ border: "1px solid #555", padding: "8px" }}>Confidence</th>
               <th style={{ border: "1px solid #555", padding: "8px" }}>Scanned At</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((scan) => {
-              const confidenceValue =
-                typeof scan.confidence === "number"
-                  ? scan.confidence <= 1
-                    ? scan.confidence * 100
-                    : scan.confidence
-                  : null;
-
               return (
                 <tr key={scan.id}>
                   <td style={{ border: "1px solid #555", padding: "8px" }}>{scan.url}</td>
                   <td style={{ border: "1px solid #555", padding: "8px" }}>{scan.result}</td>
-                  <td style={{ border: "1px solid #555", padding: "8px" }}>
-                    {confidenceValue !== null ? `${confidenceValue.toFixed(2)}%` : "N/A"}
-                  </td>
                   <td style={{ border: "1px solid #555", padding: "8px" }}>
                     {scan.created_at ? new Date(scan.created_at).toLocaleString() : "N/A"}
                   </td>
