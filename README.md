@@ -13,7 +13,62 @@ A web-based phishing detection system built with:
 
 - `backend/api/` — Laravel application (PHP + Blade)
 - `ai_service/` — FastAPI service for URL prediction
+- `frontend/` — React (Vite) frontend
 - `docs/` — Project documentation (if/when added)
+
+---
+
+## Tech Stack (Languages & Libraries)
+
+### Languages
+
+GitHub detected the following languages in this repository:
+
+- Blade
+- PHP
+- Python
+- JavaScript
+- CSS
+- HTML
+
+### Backend (Laravel) — `backend/api/`
+
+**Language:** PHP (with Blade templates)
+
+**Key libraries / tools (Composer + NPM):**
+
+- Laravel Framework
+- Predis (Redis client)
+- Vite
+- Tailwind CSS
+- Axios
+- Laravel Vite Plugin
+- Concurrently (dev script helper)
+
+### AI/ML Service (FastAPI) — `ai_service/`
+
+**Language:** Python
+
+**Libraries used in code:**
+
+- FastAPI
+- pandas
+- joblib
+
+> Note: A dedicated Python dependency file (like `requirements.txt` / `pyproject.toml`) is not currently in `ai_service/`. Consider adding one so dependencies are reproducible.
+
+### Frontend (React + Vite) — `frontend/`
+
+**Languages:** JavaScript
+
+**Key libraries / tools (package.json):**
+
+- React
+- React DOM
+- Vite
+- Axios
+- ESLint
+- @vitejs/plugin-react
 
 ---
 
@@ -123,12 +178,12 @@ If the Laravel app needs to call the AI service, a common approach is to set som
   Returns service status.
 
 - `POST /predict`  
-  **Body**
-  ```json
+  **Body**  
+  ```json  
   { "url": "https://..." }
-  ```
-  **Response (example)**
-  ```json
+  ```  
+  **Response (example)**  
+  ```json  
   { "result": "safe", "confidence": 90 }
   ```
 
