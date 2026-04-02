@@ -1,0 +1,18 @@
+MODEL SUMMARY
+====================
+Train Accuracy: 0.9914623570223139
+Test Accuracy: 0.9897102943933996
+CV Mean Accuracy: 0.9898321770110631
+
+Top 10 Features:
+             feature  importance
+0         length_url        3625
+1    length_hostname        3317
+3            nb_dots        1827
+11          nb_slash        1098
+19  ratio_digits_url        1066
+24     nb_subdomains         738
+4         nb_hyphens         455
+28    nb_redirection         368
+18       https_token         356
+15            nb_www         334
