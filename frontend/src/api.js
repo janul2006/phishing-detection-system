@@ -2,15 +2,15 @@ import axios from "axios";
 
 const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
 
-const deployedBaseUrl =
+const sentryUrlBackend =
   typeof window !== "undefined" &&
   /(^|\.)sentryurl\.dev$/i.test(window.location.hostname)
-    ? `${window.location.origin}/api`
+    ? "https://api.sentryurl.dev/api"
     : null;
 
 const apiBaseUrl =
   configuredBaseUrl ||
-  deployedBaseUrl ||
+  sentryUrlBackend ||
   "https://api.sentryurl.dev/api";
 
 const API = axios.create({
