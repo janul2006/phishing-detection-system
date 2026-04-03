@@ -7,7 +7,7 @@ function ScanForm({ setResult, onScanComplete }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isLoading) return;
+    if (isLoading || !url.trim()) return;
 
     try {
       setIsLoading(true);
@@ -34,19 +34,29 @@ function ScanForm({ setResult, onScanComplete }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ marginBottom: "10px" }}>
-      <input
-        type="text"
-        placeholder="Enter URL"
-        value={url}
-        onChange={(e) => setUrl(e.target.value)}
-        style={{ width: "300px", padding: "10px" }}
-        disabled={isLoading}
-      />
-      <button type="submit" disabled={isLoading}>
-        {isLoading ? "Scanning..." : "Scan"}
-      </button>
-    </form>
+    <>
+      <div className={`pulse-overlay ${isLoading ? 'active' : ''}`}></div>
+      
+      <div className="form-header">
+        <h1>Analyze URL Security</h1>
+        <p>Enter a web address below to check for phishing threats in real-time.</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="scan-form">
+        <input
+          type="url"
+          className="url-input"
+          placeholder="https://example.com"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          disabled={isLoading}
+          required
+        />
+        <button type="submit" className="scan-button" disabled={isLoading || !url.trim()}>
+          {isLoading ? "Analyzing..." : "Scan URL"}
+        </button>
+      </form>
+    </>
   );
 }
 

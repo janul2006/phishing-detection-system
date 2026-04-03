@@ -30,11 +30,16 @@ def predict(data: dict):
         input_data = input_data[features]
 
         prediction = model.predict(input_data)[0]
+        
+        # Calculate confidence probability
+        probabilities = model.predict_proba(input_data)[0]
+        confidence = float(max(probabilities)) * 100
 
         return {
             "url": url,
             "prediction": int(prediction),
-            "result": "phishing" if prediction == 1 else "legitimate"
+            "result": "phishing" if prediction == 1 else "legitimate",
+            "confidence": round(confidence, 2)
         }
 
     except Exception as e:
