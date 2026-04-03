@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -22,16 +25,11 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
             cd /var/www/phishing-detection-system
-
             git pull origin main
-
             cd backend/api
-
             composer install --no-dev --optimize-autoloader
-
             php artisan migrate --force
             php artisan config:cache
             php artisan route:cache
-
             echo " Deployment complete"
           EOF
