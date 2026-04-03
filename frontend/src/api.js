@@ -11,7 +11,7 @@ const deployedBaseUrl =
 const apiBaseUrl =
   configuredBaseUrl ||
   deployedBaseUrl ||
-  "http://127.0.0.1:8000/api";
+  "https://api.sentryurl.dev/api";
 
 const API = axios.create({
   baseURL: apiBaseUrl.replace(/\/+$/, ""),

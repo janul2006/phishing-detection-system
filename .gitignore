@@ -2,7 +2,6 @@
 # 🔥 GENERAL
 # ======================
 node_modules/
-vendor/
 .env
 .env.*
 *.log
@@ -18,7 +17,6 @@ __pycache__/
 *.sqlite3
 
 venv/
-.env/
 .envrc
 
 # ======================
