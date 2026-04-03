@@ -6,7 +6,7 @@
 
 **🔗 Deployed site: [https://www.sentryurl.dev/](https://www.sentryurl.dev/)**
 
-SentryURL is a full-stack, production-ready phishing detection system. Paste any URL and the system instantly classifies it as **safe** or **phishing** with a confidence score, backed by a LightGBM model trained on over 100,000 URLs and achieving **99.998 % test accuracy**.
+SentryURL is a full-stack, production-ready phishing detection system. Paste any URL and the system instantly classifies it as **safe** or **phishing** with a confidence score, backed by a LightGBM model trained on over 100,000 URLs and achieving **99.998% test accuracy**.
 
 ---
 
@@ -60,9 +60,9 @@ SentryURL is a full-stack, production-ready phishing detection system. Paste any
 ## Key Features
 
 - **Instant URL scanning** — paste any URL and receive a phishing / safe verdict in milliseconds
-- **Confidence gauge** — animated score shows how certain the model is (0 – 100 %)
+- **Confidence gauge** — animated score shows how certain the model is (0 – 100%)
 - **60+ extracted features** — domain age, URL length, special characters, subdomain depth, digit ratios, and more
-- **LightGBM model** — 99.998 % test accuracy on a balanced dataset of 53,940 URLs
+- **LightGBM model** — 99.998% test accuracy on a balanced dataset of 53,940 URLs
 - **Scan history** — paginated log of all previously scanned URLs, stored in a database
 - **60-second response caching** — repeated scans for the same URL are served from cache, reducing ML calls
 - **Dark / light theme** — toggleable glassmorphism UI
