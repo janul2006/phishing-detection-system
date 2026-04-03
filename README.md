@@ -1,205 +1,268 @@
-# Phishing Detection System
+# SentryURL – AI-Powered Phishing Detection System
 
-A web-based phishing detection system built with:
+SentryURL is a full-stack, cloud-deployed phishing detection system that analyzes URLs in real time using a machine learning model. Users submit a URL through the React frontend, which calls a Laravel REST API. The API forwards the request to a FastAPI microservice that runs the ML classifier, returning a prediction label and confidence score. Results are stored in a MySQL database and are accessible through a paginated scan history endpoint.
 
-- **Backend Web/API:** Laravel (PHP) + Blade templates  
-- **AI/ML Service:** FastAPI (Python) microservice (URL prediction endpoint)
-
-> This repository is organized as a multi-service project. The Laravel app provides the main application UI/API, and the FastAPI service exposes a `/predict` endpoint that can be called to classify URLs.
+- **Live Website:** https://www.sentryurl.dev/
+- **API Endpoint:** https://api.sentryurl.dev/
 
 ---
 
-## Repository Structure
+## Features
 
-- `backend/api/` — Laravel application (PHP + Blade)
-- `ai_service/` — FastAPI service for URL prediction
-- `frontend/` — React (Vite) frontend
-- `docs/` — Project documentation (if/when added)
+- Real-time phishing URL detection via a machine learning classifier
+- Confidence score returned with every prediction
+- Paginated scan history stored in MySQL
+- Microservice architecture: Laravel backend communicates with FastAPI over a local interface
+- Secure HTTPS deployment with Let's Encrypt
+- Hosted on DigitalOcean VPS with Nginx as the reverse proxy
 
 ---
 
-## Tech Stack (Languages & Libraries)
+## System Architecture
 
-### Languages
+```
+User (Browser)
+      |
+      v
+React Frontend (Vite)
+      |
+      v
+Laravel Backend API (PHP-FPM / Nginx)
+      |
+      v
+FastAPI ML Service (Python / Uvicorn)   <-->   Machine Learning Model (joblib)
+      |
+      v
+MySQL Database
+```
 
-GitHub detected the following languages in this repository:
+Internal service communication (Laravel to FastAPI) is handled over `127.0.0.1` on the same VPS.
 
-- Blade
-- PHP
-- Python
-- JavaScript
-- CSS
-- HTML
+---
 
-### Backend (Laravel) — `backend/api/`
+## Project Structure
 
-**Language:** PHP (with Blade templates)
+```
+phishing-detection-system/
+├── backend/api/       # Laravel application – REST API and database layer
+├── ai_service/        # FastAPI microservice – ML model and prediction endpoint
+├── frontend/          # React (Vite) single-page application
+└── docs/              # Project documentation (optional)
+```
 
-**Key libraries / tools (Composer + NPM):**
+---
 
-- Laravel Framework
-- Predis (Redis client)
+## Tech Stack
+
+### Frontend
+- React.js
 - Vite
-- Tailwind CSS
 - Axios
-- Laravel Vite Plugin
-- Concurrently (dev script helper)
 
-### AI/ML Service (FastAPI) — `ai_service/`
+### Backend
+- Laravel (PHP)
+- PHP-FPM
+- REST API design
 
-**Language:** Python
-
-**Libraries used in code:**
-
-- FastAPI
+### AI / ML
+- FastAPI (Python)
+- Uvicorn
 - pandas
 - joblib
 
-> Note: A dedicated Python dependency file (like `requirements.txt` / `pyproject.toml`) is not currently in `ai_service/`. Consider adding one so dependencies are reproducible.
-
-### Frontend (React + Vite) — `frontend/`
-
-**Languages:** JavaScript
-
-**Key libraries / tools (package.json):**
-
-- React
-- React DOM
-- Vite
-- Axios
-- ESLint
-- @vitejs/plugin-react
+### Infrastructure
+- DigitalOcean VPS
+- Nginx (reverse proxy)
+- MySQL
+- Let's Encrypt (SSL/TLS)
+- Namecheap (domain)
 
 ---
 
-## Features (current)
+## Local Development Setup
 
-- FastAPI service health check: `GET /` returns `"ML Service Running"`
-- URL prediction endpoint: `POST /predict` accepts a URL and returns a result + confidence
-
-> Note: The current `ai_service` implementation returns a static response (e.g., `"safe"` with `90` confidence). You can later replace this with a real ML model.
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- PHP (for Laravel)
-- Composer
-- Node.js + npm (for Laravel frontend tooling if used)
-- Python 3.10+ (recommended)
-- pip
-
----
-
-## 1) Run the AI Service (FastAPI)
-
-### Install dependencies
+### 1. Clone the Repository
 
 ```bash
-cd ai_service
-pip install fastapi uvicorn
-```
-
-### Start the server
-
-```bash
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
-```
-
-### Test endpoints
-
-Health:
-```bash
-curl http://127.0.0.1:8000/
-```
-
-Predict:
-```bash
-curl -X POST http://127.0.0.1:8000/predict \
-  -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com"}'
+git clone https://github.com/janul2006/phishing-detection-system.git
+cd phishing-detection-system
 ```
 
 ---
 
-## 2) Run the Laravel Backend (backend/api)
-
-### Install PHP dependencies
+### 2. Backend Setup (Laravel)
 
 ```bash
 cd backend/api
 composer install
-```
-
-### Configure environment
-
-```bash
 cp .env.example .env
 php artisan key:generate
 ```
 
-Update `.env` with your database credentials and any service URLs you need (for example, the FastAPI base URL if your Laravel app calls it).
+Update `.env` with your local database credentials and the FastAPI service URL:
 
-### Run migrations (optional, if configured)
+```dotenv
+DB_DATABASE=your_db
+DB_USERNAME=your_user
+DB_PASSWORD=your_password
+
+CACHE_DRIVER=file
+SESSION_DRIVER=file
+QUEUE_CONNECTION=sync
+
+FASTAPI_URL=http://127.0.0.1:8001
+```
+
+Run database migrations:
 
 ```bash
 php artisan migrate
 ```
 
-### Start the Laravel dev server
+Start the development server:
 
 ```bash
 php artisan serve
 ```
 
-Laravel will usually start at:
-- `http://127.0.0.1:8000` (unless that port is taken)
+---
 
-> If both Laravel and FastAPI default to port 8000, run one of them on a different port (e.g., FastAPI on 8001).
+### 3. AI Service Setup (FastAPI)
+
+```bash
+cd ai_service
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirement.txt
+```
+
+Start the FastAPI server:
+
+```bash
+uvicorn main:app --host 0.0.0.0 --port 8001
+```
 
 ---
 
-## Configuration Notes
+### 4. Frontend Setup
 
-### AI Service URL
-If the Laravel app needs to call the AI service, a common approach is to set something like:
-
-- `AI_SERVICE_URL=http://127.0.0.1:8001`
-
-…in Laravel’s `.env`, then use Laravel’s HTTP client to call `POST {AI_SERVICE_URL}/predict`.
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
 ---
 
-## API Summary (FastAPI)
+## API Overview
 
-- `GET /`  
-  Returns service status.
+### Laravel Backend
 
-- `POST /predict`  
-  **Body**  
-  ```json  
-  { "url": "https://..." }
-  ```  
-  **Response (example)**  
-  ```json  
-  { "result": "safe", "confidence": 90 }
+#### POST /api/check
+
+Submit a URL for phishing analysis.
+
+**Request body:**
+```json
+{
+  "url": "http://example.com"
+}
+```
+
+**Response:**
+```json
+{
+  "result": "safe",
+  "confidence": 90
+}
+```
+
+#### GET /api/history
+
+Returns a paginated list of previously scanned URLs and their results.
+
+---
+
+### FastAPI ML Service
+
+#### POST /predict
+
+Runs the URL through the machine learning classifier.
+
+**Request body:**
+```json
+{
+  "url": "https://example.com"
+}
+```
+
+**Response:**
+```json
+{
+  "result": "safe",
+  "confidence": 90
+}
+```
+
+---
+
+## Production Deployment
+
+The project is deployed on a DigitalOcean VPS with the following configuration:
+
+| Component       | Technology                        |
+|-----------------|-----------------------------------|
+| Cloud provider  | DigitalOcean VPS                  |
+| Web server      | Nginx (reverse proxy)             |
+| PHP runtime     | Laravel via PHP-FPM               |
+| ML service      | FastAPI managed by systemd        |
+| Database        | MySQL                             |
+| Domain          | Namecheap                         |
+| SSL/TLS         | Let's Encrypt                     |
+
+**Key deployment notes:**
+
+- The FastAPI service runs as a systemd background service.
+- Laravel performance is optimized using:
+  ```bash
+  php artisan config:cache
+  php artisan route:cache
   ```
+- Internal communication between Laravel and FastAPI uses `127.0.0.1` (no external network exposure). Ensure the server firewall (e.g., UFW) is configured to block external access to port 8001 so the FastAPI service remains accessible only from the local machine.
+- Caching uses the file driver for stability.
 
 ---
 
 ## Development Tips
 
-- Keep Laravel and FastAPI running in separate terminals.
-- Consider adding Docker Compose later to run services together easily.
-- Add tests for:
-  - URL validation
-  - AI service connectivity and error handling
-  - Model performance (once implemented)
+- Run Laravel and FastAPI in separate terminal sessions.
+- Use Postman or a similar tool for manual API testing.
+- View Laravel application logs:
+  ```bash
+  tail -f backend/api/storage/logs/laravel.log
+  ```
+
+---
+
+## Roadmap
+
+- JWT-based authentication
+- Analytics dashboard for scan statistics
+- Redis caching layer
+- Docker Compose setup for local multi-service orchestration
+- Public API with rate limiting and monetization
+
+---
+
+## Author
+
+**Janul Induwara**
+
+- GitHub: https://github.com/janul2006
+- Project: https://www.sentryurl.dev/
 
 ---
 
 ## License
 
-Add a license file if you plan to open-source this project (e.g., MIT, Apache-2.0).
+No license file is currently present in this repository. License terms are to be determined.
