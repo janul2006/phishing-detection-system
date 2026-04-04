@@ -1,9 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
-import Particles from "@tsparticles/react";
-import { loadSlim } from "@tsparticles/slim";
+import { useState } from "react";
 import ScanForm from "./components/ScanForm";
 import ResultCard from "./components/ResultCard";
 import HistoryTable from "./components/HistoryTable";
+import DataConstellation from "./components/DataConstellation";
 import "./App.css";
 
 function SentryLogo() {
@@ -18,29 +17,7 @@ function SentryLogo() {
 function App() {
   const [result, setResult] = useState(null);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
-
-  const particlesInit = useCallback(async engine => {
-    await loadSlim(engine);
-  }, []);
-
-  const particlesOptions = {
-    background: { color: { value: "transparent" } },
-    fpsLimit: 60,
-    interactivity: {
-      events: { onHover: { enable: true, mode: "grab" }, resize: true },
-      modes: { grab: { distance: 140, links: { opacity: 0.5, color: "#00D2FF" } } },
-    },
-    particles: {
-      color: { value: "#00D2FF" },
-      links: { color: "#00D2FF", distance: 150, enable: true, opacity: 0.1, width: 1 },
-      move: { direction: "none", enable: true, speed: 0.8, outModes: { default: "out" } },
-      number: { density: { enable: true, area: 800 }, value: 30 },
-      opacity: { value: 0.3 },
-      shape: { type: "circle" },
-      size: { value: { min: 1, max: 3 } },
-    },
-    detectRetina: true,
-  };
+  const [isScanning, setIsScanning] = useState(false);
 
   const handleScanComplete = () => {
     setHistoryRefreshKey((prev) => prev + 1);
@@ -48,7 +25,7 @@ function App() {
 
   return (
     <div className="app-wrapper">
-      <Particles id="tsparticles" init={particlesInit} options={particlesOptions} className="particles-layer" />
+      <DataConstellation isScanning={isScanning} result={result} />
       
       <nav className="navbar">
         <div className="nav-brand">
@@ -56,13 +33,17 @@ function App() {
           <span className="brand-text text-gradient">SentryURL</span>
         </div>
         <div className="nav-actions">
-          {/* HUD Status if needed globally could go here */}
         </div>
       </nav>
 
       <main className="main-content">
         <section className="scan-form-container glass-card">
-          <ScanForm setResult={setResult} onScanComplete={handleScanComplete} currentResult={result} />
+          <ScanForm 
+            setResult={setResult} 
+            onScanComplete={handleScanComplete} 
+            currentResult={result} 
+            onScanStateChange={setIsScanning}
+          />
         </section>
 
         {result && <ResultCard result={result} />}

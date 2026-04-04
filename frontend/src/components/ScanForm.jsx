@@ -4,13 +4,13 @@ import API from "../api";
 function BrainIcon({ className }) {
   return (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
-      <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>
+      <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z" />
+      <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z" />
     </svg>
   );
 }
 
-function ScanForm({ setResult, onScanComplete, currentResult }) {
+function ScanForm({ setResult, onScanComplete, currentResult, onScanStateChange }) {
   const [url, setUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [statusText, setStatusText] = useState("");
@@ -21,13 +21,14 @@ function ScanForm({ setResult, onScanComplete, currentResult }) {
 
     try {
       setIsLoading(true);
+      onScanStateChange?.(true);
       setStatusText("> extracting features...");
-      
+
       const startedAt = performance.now();
       setTimeout(() => setStatusText("> querying LightGBM model..."), 800);
-      
+
       const res = await API.post("/scan-url", { url });
-      
+
       const completedAt = performance.now();
       const responseData = res.data?.data || {};
       const fallbackScanTimeMs = Math.round(completedAt - startedAt);
@@ -49,6 +50,7 @@ function ScanForm({ setResult, onScanComplete, currentResult }) {
       setStatusText("");
     } finally {
       setIsLoading(false);
+      onScanStateChange?.(false);
     }
   };
 
@@ -64,7 +66,7 @@ function ScanForm({ setResult, onScanComplete, currentResult }) {
   return (
     <>
       <div className={`scan-beam ${isLoading ? 'active' : ''}`}></div>
-      
+
       <div className="form-header">
         <h1>Analyze URL Security</h1>
         <p>Enter a web address below to check for phishing threats in real-time.</p>
@@ -83,13 +85,13 @@ function ScanForm({ setResult, onScanComplete, currentResult }) {
             spellCheck="false"
           />
           {isLoading && (
-             <div className="hud-status active">
-               <BrainIcon className="brain-pulse" />
-               <span className="font-mono text-xs">{statusText}</span>
-             </div>
+            <div className="hud-status active">
+              <BrainIcon className="brain-pulse" />
+              <span className="font-mono text-xs">{statusText}</span>
+            </div>
           )}
         </div>
-        
+
         <button type="submit" className={`scan-button ${isLoading ? 'scanning' : ''}`} disabled={isLoading || !url.trim()}>
           <span className="scan-button-text">{isLoading ? "Analyzing..." : "Scan URL"}</span>
           <div className="shimmer-effect"></div>
@@ -97,10 +99,10 @@ function ScanForm({ setResult, onScanComplete, currentResult }) {
       </form>
 
       {!isLoading && !statusText && (
-         <div className="hud-status idle">
-            <BrainIcon className="brain-idle" />
-            <span className="font-mono text-xs">{">"} AI System Ready</span>
-         </div>
+        <div className="hud-status idle">
+          <BrainIcon className="brain-idle" />
+          <span className="font-mono text-xs">{">"} AI System Ready</span>
+        </div>
       )}
     </>
   );
