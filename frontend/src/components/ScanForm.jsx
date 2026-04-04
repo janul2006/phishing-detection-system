@@ -65,8 +65,6 @@ function ScanForm({ setResult, onScanComplete, currentResult, onScanStateChange 
 
   return (
     <>
-      <div className={`scan-beam ${isLoading ? 'active' : ''}`}></div>
-
       <div className="form-header">
         <h1>Analyze URL Security</h1>
         <p>Enter a web address below to check for phishing threats in real-time.</p>
@@ -74,6 +72,7 @@ function ScanForm({ setResult, onScanComplete, currentResult, onScanStateChange 
 
       <form onSubmit={handleSubmit} className="scan-form">
         <div className="input-wrapper" style={{ flex: 1, position: 'relative' }}>
+          <div className={`scan-beam ${isLoading ? 'active' : ''}`}></div>
           <input
             type="url"
             className={`url-input font-mono ${inputStateClass}`}
@@ -94,7 +93,11 @@ function ScanForm({ setResult, onScanComplete, currentResult, onScanStateChange 
 
         <button type="submit" className={`scan-button ${isLoading ? 'scanning' : ''}`} disabled={isLoading || !url.trim()}>
           <span className="scan-button-text">{isLoading ? "Analyzing..." : "Scan URL"}</span>
-          <div className="shimmer-effect"></div>
+          {isLoading ? (
+            <div className="button-progress-bar"></div>
+          ) : (
+            <div className="shimmer-effect"></div>
+          )}
         </button>
       </form>
 
