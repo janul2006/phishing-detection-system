@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import Particles from "@tsparticles/react";
+import { loadSlim } from "@tsparticles/slim";
 import ScanForm from "./components/ScanForm";
 import ResultCard from "./components/ResultCard";
 import HistoryTable from "./components/HistoryTable";
@@ -16,19 +18,28 @@ function SentryLogo() {
 function App() {
   const [result, setResult] = useState(null);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
-  const [theme, setTheme] = useState("dark"); // Default dark mode
 
-  useEffect(() => {
-    // Apply theme class to document body/root
-    if (theme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [theme]);
+  const particlesInit = useCallback(async engine => {
+    await loadSlim(engine);
+  }, []);
 
-  const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
+  const particlesOptions = {
+    background: { color: { value: "transparent" } },
+    fpsLimit: 60,
+    interactivity: {
+      events: { onHover: { enable: true, mode: "grab" }, resize: true },
+      modes: { grab: { distance: 140, links: { opacity: 0.5, color: "#00D2FF" } } },
+    },
+    particles: {
+      color: { value: "#00D2FF" },
+      links: { color: "#00D2FF", distance: 150, enable: true, opacity: 0.1, width: 1 },
+      move: { direction: "none", enable: true, speed: 0.8, outModes: { default: "out" } },
+      number: { density: { enable: true, area: 800 }, value: 30 },
+      opacity: { value: 0.3 },
+      shape: { type: "circle" },
+      size: { value: { min: 1, max: 3 } },
+    },
+    detectRetina: true,
   };
 
   const handleScanComplete = () => {
@@ -37,27 +48,23 @@ function App() {
 
   return (
     <div className="app-wrapper">
+      <Particles id="tsparticles" init={particlesInit} options={particlesOptions} className="particles-layer" />
+      
       <nav className="navbar">
         <div className="nav-brand">
           <SentryLogo />
-          <span className="brand-text">SentryURL</span>
+          <span className="brand-text text-gradient">SentryURL</span>
         </div>
-        <button 
-          className="theme-toggle" 
-          onClick={toggleTheme}
-          aria-label="Toggle theme"
-          title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
-        >
-          {theme === "dark" ? "☀️" : "🌙"}
-        </button>
+        <div className="nav-actions">
+          {/* HUD Status if needed globally could go here */}
+        </div>
       </nav>
 
       <main className="main-content">
         <section className="scan-form-container glass-card">
-          <ScanForm setResult={setResult} onScanComplete={handleScanComplete} />
+          <ScanForm setResult={setResult} onScanComplete={handleScanComplete} currentResult={result} />
         </section>
 
-        {/* Show result only if available */}
         {result && <ResultCard result={result} />}
 
         <HistoryTable refreshKey={historyRefreshKey} />

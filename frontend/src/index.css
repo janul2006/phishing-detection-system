@@ -1,52 +1,66 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-  /* Light Theme */
-  --bg-primary: #F3F4F6; /* Neutral Soft Gray */
-  --bg-secondary: #ffffff;
-  --text-primary: #1A202C; /* Deep Navy */
-  --text-secondary: #4A5568;
-  --accent-primary: #10B981; /* Security Green */
-  --accent-hover: #059669;
-  --glass-bg: rgba(255, 255, 255, 0.8);
-  --glass-border: rgba(26, 32, 44, 0.1);
-  --danger: #EF4444; /* Vivid Orange/Crimson */
-  --danger-bg: rgba(239, 68, 68, 0.1);
-  --success: #10B981;
-  --success-bg: rgba(16, 185, 129, 0.1);
-  --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
-  --input-bg: #ffffff;
-  --focus-ring: rgba(16, 185, 129, 0.4);
+  /* Cyber-Luxe Light/Default Theme (Kept mostly dark for consistency) */
+  --bg-primary: #0B0E14; /* Deep Charcoal */
+  --bg-secondary: rgba(23, 28, 36, 0.7); /* Glassmorphic Midnight */
+  --text-primary: #ffffff;
+  --text-secondary: #8b9bb4;
+  --accent-primary: #00D2FF; /* Cyber Blue */
+  --accent-hover: #00a2cc;
+  --glass-bg: rgba(23, 28, 36, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --danger: #FF4B2B; /* Electric Crimson */
+  --danger-bg: rgba(255, 75, 43, 0.15);
+  --success: #00F5A0; /* Neon Emerald */
+  --success-bg: rgba(0, 245, 160, 0.15);
+  --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --input-bg: rgba(11, 14, 20, 0.6);
+  --focus-ring: rgba(0, 210, 255, 0.4);
 }
 
 :root.dark {
-  /* Dark Theme Default */
-  --bg-primary: #1A202C; /* Deep Navy / Charcoal */
-  --bg-secondary: #2D3748;
-  --text-primary: #F3F4F6; /* Soft Gray */
-  --text-secondary: #A0AEC0;
-  --accent-primary: #10B981; /* Security Green */
-  --accent-hover: #34D399;
-  --glass-bg: rgba(45, 55, 72, 0.7);
-  --glass-border: rgba(243, 244, 246, 0.08);
-  --danger: #EF4444;
-  --danger-bg: rgba(239, 68, 68, 0.15);
-  --success: #10B981;
-  --success-bg: rgba(16, 185, 129, 0.15);
-  --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
-  --input-bg: rgba(26, 32, 44, 0.8);
-  --focus-ring: rgba(16, 185, 129, 0.4);
+  /* Exact same Cyber-Luxe Theme, to enforce always dark look */
+  --bg-primary: #0B0E14;
+  --bg-secondary: rgba(23, 28, 36, 0.7);
+  --text-primary: #ffffff;
+  --text-secondary: #8b9bb4;
+  --accent-primary: #00D2FF;
+  --accent-hover: #00a2cc;
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --danger: #FF4B2B;
+  --danger-bg: rgba(255, 75, 43, 0.15);
+  --success: #00F5A0;
+  --success-bg: rgba(0, 245, 160, 0.15);
+  --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --input-bg: rgba(11, 14, 20, 0.5);
+  --focus-ring: rgba(0, 210, 255, 0.4);
 }
 
 body {
   margin: 0;
   font-family: 'Inter', sans-serif;
   background-color: var(--bg-primary);
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
   color: var(--text-primary);
-  transition: background-color 0.4s ease, color 0.4s ease;
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
+}
+
+/* Subtle mesh gradient via pseudo-element */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(circle at 15% 50%, rgba(0, 210, 255, 0.08) 0%, transparent 50%),
+              radial-gradient(circle at 85% 30%, rgba(255, 75, 43, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
 }
 
 * {
@@ -73,4 +87,8 @@ button {
   border-radius: 16px;
   box-shadow: var(--card-shadow);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
 }
