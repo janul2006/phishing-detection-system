@@ -1,90 +1,152 @@
-import pandas as pd
 import lightgbm as lgb
 import joblib
 import os
 
-from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.metrics import classification_report, accuracy_score
-from sklearn.model_selection import StratifiedKFold
+import pandas as pd
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    confusion_matrix,
+    precision_recall_curve,
+    precision_score,
+    recall_score,
+)
+from sklearn.model_selection import StratifiedKFold, cross_validate, train_test_split
+
+from scripts.feature_extractor import extract_features
+from scripts.preprocessing import clean_dataset, find_dataset_path
+
+
+def find_best_threshold(y_true: pd.Series, probabilities) -> tuple[float, dict]:
+    precision, recall, thresholds = precision_recall_curve(y_true, probabilities)
+    candidate_thresholds = list(thresholds) + [0.99]
+    best_threshold = 0.30
+    best_score = -1.0
+    best_metrics = {"precision": 0.0, "recall": 0.0, "f2": 0.0}
+
+    for threshold in candidate_thresholds:
+        predictions = (probabilities >= threshold).astype(int)
+        current_precision = precision_score(y_true, predictions, zero_division=0)
+        current_recall = recall_score(y_true, predictions, zero_division=0)
+        if current_precision + current_recall == 0:
+            current_f2 = 0.0
+        else:
+            current_f2 = (5 * current_precision * current_recall) / ((4 * current_precision) + current_recall)
+
+        if current_f2 > best_score:
+            best_score = current_f2
+            best_threshold = float(threshold)
+            best_metrics = {
+                "precision": float(current_precision),
+                "recall": float(current_recall),
+                "f2": float(current_f2),
+            }
+
+    return best_threshold, best_metrics
 
 # ===============================
 # 🔹 LOAD DATA
 # ===============================
 
-df = pd.read_csv("../data/cleaned_dataset3.csv")
+dataset_path = find_dataset_path()
+df = pd.read_csv(dataset_path)
+df, cleaning_stats = clean_dataset(df)
 
 print("Dataset shape:", df.shape)
+print("Cleaning stats:", cleaning_stats)
 
 # ===============================
-# 🔹 SPLIT FEATURES / LABEL
+# 🔹 FEATURE EXTRACTION
 # ===============================
 
-X = df.drop(columns=["label"])
-y = df["label"]
+print("Extracting features...")
+
+features = df["url"].apply(extract_features)
+X = pd.DataFrame(features.tolist())
+y = df["label"].astype(int)
 
 # ===============================
-# 🔹 TRAIN TEST SPLIT
+# 🔹 TRAIN / VALIDATION / TEST SPLIT
 # ===============================
 
-X_train, X_test, y_train, y_test = train_test_split(
+X_train, X_holdout, y_train, y_holdout = train_test_split(
     X, y,
-    test_size=0.2,
+    test_size=0.3,
     random_state=42,
     stratify=y
 )
 
+X_val, X_test, y_val, y_test = train_test_split(
+    X_holdout, y_holdout,
+    test_size=0.5,
+    random_state=42,
+    stratify=y_holdout
+)
+
 # ===============================
-# 🔥 MODEL (OPTIMIZED)
+# 🔥 LIGHTGBM MODEL
 # ===============================
 
 model = lgb.LGBMClassifier(
-    n_estimators=500,        # more trees = better learning
-    learning_rate=0.03,      # slower learning = better accuracy
-    num_leaves=31,
-    max_depth=-1,
-    subsample=0.8,           # prevent overfitting
-    colsample_bytree=0.8,
+    n_estimators=800,
+    learning_rate=0.02,
+    num_leaves=50,
+    max_depth=10,
+    subsample=0.9,
+    colsample_bytree=0.9,
+    objective="binary",
     random_state=42
 )
 
 # ===============================
 # 🔹 TRAIN
 # ===============================
-
+print("Training model...")
 model.fit(X_train, y_train)
 
 # ===============================
-# 🔹 PREDICT
+# 🔹 THRESHOLD TUNING
 # ===============================
 
-y_train_pred = model.predict(X_train)
-y_test_pred = model.predict(X_test)
+val_proba = model.predict_proba(X_val)[:, 1]
+best_threshold, threshold_metrics = find_best_threshold(y_val, val_proba)
+
+test_proba = model.predict_proba(X_test)[:, 1]
+y_pred = (test_proba >= best_threshold).astype(int)
 
 # ===============================
 # 📊 EVALUATION
 # ===============================
 
-os.makedirs("../results/train2", exist_ok=True)
-
-train_acc = accuracy_score(y_train, y_train_pred)
-test_acc = accuracy_score(y_test, y_test_pred)
-
 print("\n🔥 RESULTS 🔥")
-print("Train Accuracy:", train_acc)
-print("Test Accuracy:", test_acc)
+
+accuracy = accuracy_score(y_test, y_pred)
+print("Accuracy:", accuracy)
+print("Chosen threshold:", round(best_threshold, 4))
+print("Validation threshold metrics:", threshold_metrics)
 
 print("\nClassification Report:\n")
-print(classification_report(y_test, y_test_pred))
+print(classification_report(y_test, y_pred))
+
+print("\nConfusion Matrix:\n")
+print(confusion_matrix(y_test, y_pred))
 
 # ===============================
 # 🔁 CROSS VALIDATION
 # ===============================
 
 cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-cv_scores = cross_val_score(model, X, y, cv=cv)
+cv_scores = cross_validate(
+    model,
+    X,
+    y,
+    cv=cv,
+    scoring={"recall": "recall", "precision": "precision", "roc_auc": "roc_auc"},
+)
 
-print("\n📊 Cross Validation Scores:", cv_scores)
-print("Mean CV Accuracy:", cv_scores.mean())
+print("\n📊 Mean CV Recall:", cv_scores["test_recall"].mean())
+print("📊 Mean CV Precision:", cv_scores["test_precision"].mean())
+print("📊 Mean CV ROC-AUC:", cv_scores["test_roc_auc"].mean())
 
 # ===============================
 # 🧠 FEATURE IMPORTANCE
@@ -99,98 +161,46 @@ print("\n🔥 Top Features:\n")
 print(importance.head(10))
 
 # ===============================
-# 💾 SAVE MODEL
+#  SAVE MODEL
 # ===============================
 
-os.makedirs("../models", exist_ok=True)
+os.makedirs("../models/train2", exist_ok=True)
+os.makedirs("../results/train2", exist_ok=True)
 
 joblib.dump(model, "../models/train2/final_model.pkl")
 joblib.dump(list(X.columns), "../models/train2/features.pkl")
+joblib.dump(
+    {
+        "threshold": best_threshold,
+        "cleaning_stats": cleaning_stats,
+        "validation_threshold_metrics": threshold_metrics,
+    },
+    "../models/train2/metadata.pkl",
+)
 
 print("\n✅ MODEL SAVED SUCCESSFULLY")
+print(y.value_counts())
+# ===============================
+#  SAVE RESULTS
+# ===============================
 
 with open("../results/train2/metrics.txt", "w") as f:
-    f.write(" RESULTS \n\n")
-    f.write(f"Train Accuracy: {train_acc}\n")
-    f.write(f"Test Accuracy: {test_acc}\n\n")
-
+    f.write("RESULTS\n\n")
+    f.write(f"Accuracy: {accuracy}\n\n")
+    f.write(f"Chosen threshold: {best_threshold:.4f}\n")
+    f.write(f"Validation threshold metrics: {threshold_metrics}\n")
+    f.write(f"Cleaning stats: {cleaning_stats}\n\n")
     f.write("Classification Report:\n")
-    f.write(classification_report(y_test, y_test_pred))
-
-# ===============================
-# 💾 SAVE CROSS VALIDATION
-# ===============================
-
-with open("../results/train2/cv_scores.txt", "w") as f:
-    f.write("Cross Validation Scores:\n")
-    f.write(str(cv_scores))
-    f.write(f"\n\nMean CV Accuracy: {cv_scores.mean()}")
-
-# ===============================
-# 💾 SAVE FEATURE IMPORTANCE
-# ===============================
+    f.write(classification_report(y_test, y_pred))
+    f.write("\nConfusion Matrix:\n")
+    f.write(str(confusion_matrix(y_test, y_pred)))
+    f.write("\n\nCross-validation mean recall: ")
+    f.write(str(cv_scores["test_recall"].mean()))
+    f.write("\nCross-validation mean precision: ")
+    f.write(str(cv_scores["test_precision"].mean()))
+    f.write("\nCross-validation mean roc_auc: ")
+    f.write(str(cv_scores["test_roc_auc"].mean()))
 
 importance.to_csv("../results/train2/feature_importance.csv", index=False)
 
-# ===============================
-# 💾 SAVE SUMMARY (OPTIONAL CLEAN FILE)
-# ===============================
-
-with open("../results/train2/summary.txt", "w") as f:
-    f.write("MODEL SUMMARY\n")
-    f.write("====================\n")
-    f.write(f"Train Accuracy: {train_acc}\n")
-    f.write(f"Test Accuracy: {test_acc}\n")
-    f.write(f"CV Mean Accuracy: {cv_scores.mean()}\n\n")
-
-    f.write("Top 10 Features:\n")
-    f.write(str(importance.head(10)))
-
-
-
-
-import pandas as pd
-import lightgbm as lgb
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, accuracy_score
-import joblib
-
-from extract_features import extract_features
-
-# 🔹 Load dataset
-df = pd.read_csv("../data/dataset.csv")  # must have: url, label
-
-# 🔹 Extract features
-features = df['url'].apply(lambda x: extract_features(x))
-X = pd.DataFrame(features.tolist())
-
-# 🔹 Labels (convert)
-y = df['label'].apply(lambda x: 1 if x == "phishing" else 0)
-
-# 🔹 Split
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
-
-# 🔥 LightGBM model
-model = lgb.LGBMClassifier(
-    n_estimators=200,
-    learning_rate=0.05,
-    max_depth=-1,
-    random_state=42
-)
-
-# 🔹 Train
-model.fit(X_train, y_train)
-
-# 🔹 Predict
-y_pred = model.predict(X_test)
-
-# 🔹 Evaluate
-print("Accuracy:", accuracy_score(y_test, y_pred))
-print("\nClassification Report:\n", classification_report(y_test, y_pred))
-
-#  Save model
-joblib.dump(model, "../models/lightgbm_model.pkl")
-
-print(" Model saved successfully!")
+print("\n Results saved successfully")

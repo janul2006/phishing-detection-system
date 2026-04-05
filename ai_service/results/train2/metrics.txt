@@ -1,14 +1,25 @@
- RESULTS 
+RESULTS
 
-Train Accuracy: 0.9914623570223139
-Test Accuracy: 0.9897102943933996
+Accuracy: 0.9977340961876169
+
+Chosen threshold: 0.1478
+Validation threshold metrics: {'precision': 0.9965021184353138, 'recall': 1.0, 'f2': 0.999298460565579}
+Cleaning stats: {'initial_rows': 235370, 'cleaned_rows': 235370, 'dropped_rows': 0, 'duplicate_urls_removed': 0, 'class_counts': {0: 100520, 1: 134850}, 'minority_majority_ratio': 0.7454208379681128, 'is_reasonably_balanced': True}
 
 Classification Report:
               precision    recall  f1-score   support
 
-           0       0.99      0.99      0.99     21332
-           1       0.99      0.99      0.99     21332
+           0       1.00      0.99      1.00     15078
+           1       1.00      1.00      1.00     20228
 
-    accuracy                           0.99     42664
-   macro avg       0.99      0.99      0.99     42664
-weighted avg       0.99      0.99      0.99     42664
+    accuracy                           1.00     35306
+   macro avg       1.00      1.00      1.00     35306
+weighted avg       1.00      1.00      1.00     35306
+
+Confusion Matrix:
+[[14999    79]
+ [    1 20227]]
+
+Cross-validation mean recall: 0.999822024471635
+Cross-validation mean precision: 0.9965924848125383
+Cross-validation mean roc_auc: 0.9983549816076904
